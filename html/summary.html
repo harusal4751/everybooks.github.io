@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Summary - 읽은 책 요약</title>
+  <link rel="stylesheet" href="../css/summarystyle.css" />
+</head>
+<body>
+
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="category.html">Category</a></li>
+      <li><a href="summary.html">summary</a></li>
+      <li><a href="background.html">background</a></li>
+      <li><a href="board.html">board</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>📝 읽은 책 요약</h1>
+    <p>책 제목을 입력하면 간단한 요약을 보여드립니다.</p>
+  </header>
+
+  <main>
+    <form id="summary-form">
+      <input type="text" placeholder="책 제목을 입력하세요" required />
+      <button type="submit">요약 보기</button>
+    </form>
+
+    <section class="summary-result">
+      <p>요약 내용이 여기에 표시됩니다.</p>
+    </section>
+  </main>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    document.body.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+  });
+</script>
+</body>
+</html>

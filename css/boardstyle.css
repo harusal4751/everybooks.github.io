@@ -1,0 +1,162 @@
+ body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #fefefe;
+  color: #333;
+  text-align: center;
+}
+
+/* 네비게이션 메뉴 */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #6c4f3d;
+  z-index: 1000;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem 0;
+}
+
+nav ul li {
+  margin: 0 1rem;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+header {
+  background-color: #f8e7d2;
+  padding: 3rem;
+  margin-top: 2rem;
+}
+
+form#post-form {
+  margin-top: 2rem;
+}
+
+/* 제목 입력칸 스타일 추가 */
+form input[type="text"] {
+  width: 90%;
+  max-width: 600px;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background-color: #d8c3a5;  /* 연갈색 */
+  color: #4b3b2b;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  outline: none;
+  transition: background-color 0.3s ease;
+}
+
+form input[type="text"]:focus {
+  background-color: #f8e7d2;
+}
+
+form textarea {
+  width: 90%;
+  max-width: 600px;
+  font-size: 1rem;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: vertical;
+}
+
+form button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: #6c4f3d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* 게시하기 버튼과 게시글 리스트 사이 간격 추가 */
+.posts {
+  margin-top: 3rem;
+}
+
+form button:hover {
+  background-color: #8a6d5a;
+}
+
+/* 게시글 스타일 */
+.post {
+  background-color: #fff9f2;
+  border: 1px solid #d7ccc8;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding-bottom 0.4s ease;
+  max-height: 50px; /* 제목만 보임 */
+  padding-bottom: 0.3rem;
+}
+
+.post.expanded {
+  max-height: 500px;
+  padding-bottom: 1rem;
+}
+
+.post h3 {
+  margin-top: 0;
+  color: #6c4f3d;
+  user-select: none;
+}
+
+.post p {
+  margin-top: 0.5rem;
+  display: none;
+  white-space: pre-wrap;
+}
+
+.post.expanded p {
+  display: block;
+}
+
+/* 삭제 버튼 */
+.delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: #d9534f;
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  opacity: 0.8;
+}
+
+.delete-btn:hover {
+  background-color: #c9302c;
+  opacity: 1;
+}
+

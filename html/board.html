@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Board - 리뷰 & 메모 게시판</title>
+  <link rel="stylesheet" href="../css/boardstyle.css" />
+</head>
+<body>
+
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="category.html">Category</a></li>
+      <li><a href="summary.html">summary</a></li>
+      <li><a href="background.html">background</a></li>
+      <li><a href="board.html">board</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>💬 리뷰 & 메모 게시판</h1>
+    <p>자유롭게 리뷰와 메모를 공유해보세요.</p>
+  </header>
+
+  <main>
+    <form id="post-form">
+      <input type="text" id="post-title" placeholder="제목을 입력하세요" required />
+      <br />
+      <textarea id="post-content" placeholder="내용을 입력하세요" rows="5" required></textarea>
+      <br />
+      <button type="submit">게시하기</button>
+    </form>
+
+    <section class="posts" id="posts">
+      <p>작성된 리뷰 및 메모가 여기에 표시됩니다.</p>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('post-form');
+      const postsContainer = document.getElementById('posts');
+
+      const STORAGE_KEY = 'boardPosts';
+
+      function loadPosts() {
+        const savedPosts = localStorage.getItem(STORAGE_KEY);
+        if (savedPosts) {
+          const posts = JSON.parse(savedPosts);
+          postsContainer.innerHTML = '';
+          posts.forEach(({title, content}) => {
+            addPostElement(title, content);
+          });
+        } else {
+          postsContainer.innerHTML = '<p>작성된 리뷰 및 메모가 여기에 표시됩니다.</p>';
+        }
+      }
+
+      function savePosts() {
+        const posts = [];
+        postsContainer.querySelectorAll('.post').forEach(postEl => {
+          const title = postEl.querySelector('h3').textContent;
+          const content = postEl.querySelector('p').textContent;
+          posts.push({title, content});
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+      }
+
+      function addPostElement(title, content) {
+        if (postsContainer.children.length === 1 && postsContainer.children[0].tagName === 'P') {
+          postsContainer.innerHTML = '';
+        }
+
+        const postDiv = document.createElement('div');
+        postDiv.classList.add('post');
+
+        const postTitle = document.createElement('h3');
+        postTitle.textContent = title;
+
+        const postContent = document.createElement('p');
+        postContent.textContent = content;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '삭제';
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.type = 'button';
+
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('이 글을 삭제하시겠습니까?')) {
+            postDiv.remove();
+            savePosts();
+            if (postsContainer.children.length === 0) {
+              postsContainer.innerHTML = '<p>작성된 리뷰 및 메모가 여기에 표시됩니다.</p>';
+            }
+          }
+        });
+
+        postDiv.addEventListener('click', () => {
+          postDiv.classList.toggle('expanded');
+        });
+
+        postDiv.appendChild(postTitle);
+        postDiv.appendChild(postContent);
+        postDiv.appendChild(deleteBtn);
+
+        postsContainer.prepend(postDiv);
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const titleInput = document.getElementById('post-title');
+        const contentInput = document.getElementById('post-content');
+
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title || !content) {
+          alert('제목과 내용을 모두 입력해주세요.');
+          return;
+        }
+
+        addPostElement(title, content);
+        savePosts();
+
+        titleInput.value = '';
+        contentInput.value = '';
+      });
+
+      loadPosts();
+    });
+  </script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    document.body.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+  });
+</script>
+
+</body>
+</html>

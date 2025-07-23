@@ -1,0 +1,62 @@
+/* 전체 기본 설정 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #fdfcf9;
+  color: #333;
+  text-align: center;
+  scroll-behavior: smooth;
+}
+
+/* 네비게이션 메뉴 */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #6c4f3d;
+  z-index: 1000;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem 0;
+}
+
+nav ul li {
+  margin: 0 1rem;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* 섹션 */
+section {
+  padding: 120px 20px 80px;  /* 네비게이션 아래로 간격 확보 */
+  min-height: 100vh;
+  border-bottom: 1px solid #ddd;
+  background-color: #fffefb;
+}
+
+/* 제목 */
+h2 {
+  color: #5a3921;
+}
+
+/* 푸터 */
+footer {
+  background-color: #6c4f3d;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}

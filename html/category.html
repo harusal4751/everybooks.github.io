@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>카테고리</title>
+  <link rel="stylesheet" href="../css/categorystyle.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="category.html">Category</a></li>
+      <li><a href="summary.html">summary</a></li>
+      <li><a href="background.html">background</a></li>
+      <li><a href="board.html">board</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>이달의 추천 책</h1>
+    <button id="toggle-form">📚 책 등록하기</button>
+  </header>
+
+  <section id="category-buttons">
+    <button class="cat-btn active" data-cat="all">전체보기</button>
+    <button class="cat-btn" data-cat="문학">문학</button>
+    <button class="cat-btn" data-cat="과학">과학</button>
+    <button class="cat-btn" data-cat="자기계발">자기계발</button>
+    <button class="cat-btn" data-cat="예술">예술</button>
+    <button class="cat-btn" data-cat="기타">기타</button>
+  </section>
+
+  <section id="form-section" style="display: none;">
+    <form id="book-form">
+      <select id="category" required>
+        <option value="">카테고리 선택</option>
+        <option value="문학">문학</option>
+        <option value="과학">과학</option>
+        <option value="자기계발">자기계발</option>
+        <option value="예술">예술</option>
+        <option value="기타">기타</option>
+      </select>
+      <input type="text" id="title" placeholder="책 제목" required />
+      <input type="text" id="author" placeholder="작가" required />
+      <input type="text" id="publisher" placeholder="출판사" required />
+      <input type="text" id="buyLink" placeholder="구매 링크 (선택)" />
+      <input type="file" id="cover" accept="image/*" />
+      <button type="submit">책 등록</button>
+    </form>
+  </section>
+
+  <section id="book-list"></section>
+
+<script>
+  const toggleBtn = document.getElementById('toggle-form');
+  const formSection = document.getElementById('form-section');
+  const bookForm = document.getElementById('book-form');
+  const bookList = document.getElementById('book-list');
+  const categoryButtons = document.querySelectorAll('.cat-btn');
+
+  let books = JSON.parse(localStorage.getItem('books')) || [];
+  let currentFilter = 'all';
+
+  // 토글 폼 보이기/숨기기
+  toggleBtn.onclick = () => {
+    formSection.style.display = formSection.style.display === 'none' ? 'block' : 'none';
+  };
+
+  // 저장 후 렌더링 & 로컬스토리지에 저장
+  function saveBooks() {
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+
+  // 책 삭제
+  function deleteBook(index) {
+    if(confirm('정말 이 책을 삭제하시겠습니까?')) {
+      books.splice(index, 1);
+      saveBooks();
+      renderBooks(currentFilter);
+    }
+  }
+
+  // 책 렌더링
+  function renderBooks(filter) {
+    bookList.innerHTML = '';
+    // 필터링
+    const filteredBooks = filter === 'all' ? books : books.filter(b => b.category === filter);
+
+    if (filteredBooks.length === 0) {
+      bookList.innerHTML = '<p>등록된 책이 없습니다.</p>';
+      return;
+    }
+
+    filteredBooks.forEach((book, idx) => {
+      // 실제 인덱스 찾기 (전체 배열 기준)
+      const realIndex = books.indexOf(book);
+
+      const card = document.createElement('div');
+      card.className = 'book-card';
+      card.innerHTML = `
+        ${book.imageUrl ? `<img src="${book.imageUrl}" alt="책표지">` : ''}
+        <div class="info">
+          <h3>${book.title}</h3>
+          <p>👤 ${book.author}</p>
+          <p>🏢 ${book.publisher}</p>
+          ${book.buyLink ? `<p><a href="${book.buyLink}" target="_blank" rel="noopener noreferrer">📖 구매하기</a></p>` : ''}
+          <button class="delete-btn" data-index="${realIndex}">삭제</button>
+        </div>
+      `;
+      bookList.appendChild(card);
+    });
+
+    // 삭제 버튼 이벤트 연결
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.getAttribute('data-index'));
+        deleteBook(idx);
+      };
+    });
+  }
+
+  // 카테고리 버튼 이벤트
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      categoryButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.getAttribute('data-cat');
+      renderBooks(currentFilter);
+    });
+  });
+
+  // 폼 제출
+  bookForm.onsubmit = (e) => {
+    e.preventDefault();
+
+    const category = document.getElementById('category').value;
+    const title = document.getElementById('title').value;
+    const author = document.getElementById('author').value;
+    const publisher = document.getElementById('publisher').value;
+
+    // buyLink 자동 http/https 붙이기 처리
+    let buyLink = document.getElementById('buyLink').value.trim();
+    if (buyLink && !buyLink.startsWith('http://') && !buyLink.startsWith('https://')) {
+      buyLink = 'http://' + buyLink;
+    }
+
+    const coverInput = document.getElementById('cover');
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const imageUrl = reader.result;
+
+      books.push({ category, title, author, publisher, buyLink, imageUrl });
+      saveBooks();
+      renderBooks(currentFilter);
+      bookForm.reset();
+      formSection.style.display = 'none';
+    };
+
+    if (coverInput.files[0]) {
+      reader.readAsDataURL(coverInput.files[0]);
+    } else {
+      books.push({ category, title, author, publisher, buyLink, imageUrl: '' });
+      saveBooks();
+      renderBooks(currentFilter);
+      bookForm.reset();
+      formSection.style.display = 'none';
+    }
+  };
+
+  // 초기 렌더링
+  renderBooks(currentFilter);
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    document.body.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+  });
+</script>
+</body>
+</html>

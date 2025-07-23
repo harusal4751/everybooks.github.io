@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>나만의 책 공간</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 네비게이션 메뉴 -->
+  <nav>
+    <ul>
+      <li><a href="../새 폴더/html/category.html">Category</a></li>
+      <li><a href="../새 폴더/html/summary.html">summary</a></li>
+      <li><a href="../새 폴더/html/background.html">background</a></li>
+      <li><a href="../새 폴더/html/board.html">board</a></li>
+    </ul>
+  </nav>
+
+  <!-- 섹션: Category -->
+  <section id="category">
+    <h2>📚 관심 분야별 책 추천</h2>
+    <p>관심 있는 분야를 선택하고 책을 추천받아보세요.</p>
+  </section>
+
+  <!-- 섹션: 요약 -->
+  <section id="summary">
+    <h2>📝 읽은 책 요약</h2>
+    <p>책 제목을 입력하면 간단한 요약을 보여드립니다.</p>
+  </section>
+
+  <!-- 섹션: 배경지식 -->
+  <section id="background">
+    <h2>📖 작가 및 책 배경지식</h2>
+    <p>작가의 생애와 시대적 배경, 책의 배경지식을 알려드립니다.</p>
+  </section>
+
+  <!-- 섹션: 게시판 -->
+  <section id="board">
+    <h2>💬 리뷰 & 메모 게시판</h2>
+    <p>당신의 생각을 공유해보세요. 다른 사람의 리뷰도 읽어볼 수 있어요.</p>
+  </section>
+
+  <footer>
+    <p>© 2025 나만의 책 공간</p>
+  </footer>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    document.body.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+  });
+  </script>
+</body>
+</html>

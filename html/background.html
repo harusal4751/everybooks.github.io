@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Background - 작가 및 책 배경지식</title>
+  <link rel="stylesheet" href="../css/backgroundstyle.css" />
+</head>
+<body>
+
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="category.html">Category</a></li>
+      <li><a href="summary.html">summary</a></li>
+      <li><a href="background.html">background</a></li>
+      <li><a href="board.html">board</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>📖 작가 및 책 배경지식</h1>
+    <p>작가의 생애와 시대적 배경, 책의 배경지식을 알려드립니다.</p>
+  </header>
+
+  <main>
+    <form id="background-form">
+      <input type="text" placeholder="작가명 또는 책 제목을 입력하세요" required />
+      <button type="submit">검색</button>
+    </form>
+
+    <section class="background-result">
+      <p>배경지식이 여기에 표시됩니다.</p>
+    </section>
+  </main>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    document.body.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+  });
+</script>
+
+</body>
+</html>
