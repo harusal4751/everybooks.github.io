@@ -1,197 +1,199 @@
-/* 전체 기본 정렬 및 배경 */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #fefefe;
-  color: #333;
-  text-align: center;  /* 중앙 정렬 */
-}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>카테고리</title>
+  <link rel="stylesheet" href="../css/categorystyle.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="category.html">Category</a></li>
+      <li><a href="summary.html">summary</a></li>
+      <li><a href="background.html">background</a></li>
+      <li><a href="board.html">board</a></li>
+    </ul>
+  </nav>
 
-/* 네비게이션 메뉴 */
-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background-color: #6c4f3d;
-  z-index: 1000;
-}
+  <header>
+    <h1>이달의 추천 책</h1>
+    <button id="toggle-form">📚 책 등록하기</button>
+  </header>
 
-nav ul {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  padding: 1rem 0;
-}
+  <section id="category-buttons">
+    <button class="cat-btn active" data-cat="all">전체보기</button>
+    <button class="cat-btn" data-cat="문학">문학</button>
+    <button class="cat-btn" data-cat="과학">과학</button>
+    <button class="cat-btn" data-cat="자기계발">자기계발</button>
+    <button class="cat-btn" data-cat="예술">예술</button>
+    <button class="cat-btn" data-cat="기타">기타</button>
+  </section>
 
-nav ul li {
-  margin: 0 1rem;
-}
+  <section id="form-section" style="display: none;">
+    <form id="book-form">
+      <select id="category" required>
+        <option value="">카테고리 선택</option>
+        <option value="문학">문학</option>
+        <option value="과학">과학</option>
+        <option value="자기계발">자기계발</option>
+        <option value="예술">예술</option>
+        <option value="기타">기타</option>
+      </select>
+      <input type="text" id="title" placeholder="책 제목" required />
+      <input type="text" id="author" placeholder="작가" required />
+      <input type="text" id="publisher" placeholder="출판사" required />
+      <input type="text" id="buyLink" placeholder="구매 링크 (선택)" />
+      <input type="file" id="cover" accept="image/*" />
+      <button type="submit">책 등록</button>
+    </form>
+  </section>
 
-nav ul li a {
-  color: #fff;
-  text-decoration: none;
-  font-weight: bold;
-}
+  <section id="book-list"></section>
 
-nav ul li a:hover {
-  text-decoration: underline;
-}
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-/* 헤더 영역 */
-header {
-  background-color: #f8e7d2;
-  padding: 3rem 1rem;
-  margin-top: 1rem;
-  text-align: center; /* 텍스트 + 버튼 중앙 정렬 */
-}
+    // Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0aaH73fZlF_90cXLXJW9qjeRAsiy8hio",
+      authDomain: "everybooks-25103.firebaseapp.com",
+      databaseURL: "https://everybooks-25103-default-rtdb.asia-southeast1.firebasedatabase.app/", // Realtime DB URL 반드시 넣어야 함
+      projectId: "everybooks-25103",
+      storageBucket: "everybooks-25103.appspot.com",
+      messagingSenderId: "546607329490",
+      appId: "1:546607329490:web:f2013f36118e9c0644bd0b"
+    };
 
-/* 책 등록하기 버튼 (header 내) */
-#toggle-form {
-  margin-top: 1rem;
-  padding: 0.5rem 1.4rem;
-  background-color: #d8c3a5; /* 연갈색 */
-  color: #4b3b2b;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgb(216 195 165 / 0.4);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  user-select: none;
-}
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-#toggle-form:hover {
-  background-color: #c1ad87;
-  color: #3a2e22;
-}
+    const toggleBtn = document.getElementById('toggle-form');
+    const formSection = document.getElementById('form-section');
+    const bookForm = document.getElementById('book-form');
+    const bookList = document.getElementById('book-list');
+    const categoryButtons = document.querySelectorAll('.cat-btn');
 
-/* 카테고리 버튼 컨테이너 */
-#category-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: 1rem auto 2rem auto;
-  max-width: 600px;
-  padding: 0;
-  flex-wrap: nowrap;
-}
+    let currentFilter = 'all';
 
-/* 카테고리 버튼 스타일 */
-#category-buttons button.cat-btn {
-  padding: 0.5rem 1.4rem;
-  background-color: #d8c3a5; /* 연갈색 */
-  color: #4b3b2b;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgb(216 195 165 / 0.4);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  user-select: none;
-}
+    // 폼 토글
+    toggleBtn.onclick = () => {
+      formSection.style.display = formSection.style.display === 'none' ? 'block' : 'none';
+    };
 
-#category-buttons button.cat-btn:hover {
-  background-color: #c1ad87;
-  color: #3a2e22;
-}
+    // Firebase에 책 저장
+    function saveBookToFirebase(book) {
+      const booksRef = ref(database, 'books');
+      const newBookRef = push(booksRef);
+      return set(newBookRef, book);
+    }
 
-#category-buttons button.cat-btn.active {
-  background-color: #6c4f3d;
-  color: white;
-  box-shadow: none;
-}
+    // Firebase에서 책 불러오기 (실시간 리스너 아님, 한번만)
+    function loadBooksFromFirebase(callback) {
+      const booksRef = ref(database, 'books');
+      onValue(booksRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        const booksArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        callback(booksArray);
+      });
+    }
 
-/* 추천 결과 박스 */
-.recommendation-box {
-  margin: 0 auto;
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: #fff8ee;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  max-width: 600px;
-}
+    // Firebase에서 책 삭제
+    function deleteBookFromFirebase(id) {
+      const bookRef = ref(database, 'books/' + id);
+      return remove(bookRef);
+    }
 
-/* 책 카드 스타일 */
-#book-list {
-  margin-top: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-}
+    // 책 렌더링 함수 (books 배열과 필터 받음)
+    function renderBooks(books, filter) {
+      bookList.innerHTML = '';
+      const filteredBooks = filter === 'all' ? books : books.filter(b => b.category === filter);
 
-.book-card {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ccc;
-  background-color: #fff9f2;
-  border-radius: 12px;
-  padding: 1rem;
-  width: 90%;
-  max-width: 600px;
-  text-align: left;
-}
+      if (filteredBooks.length === 0) {
+        bookList.innerHTML = '<p>등록된 책이 없습니다.</p>';
+        return;
+      }
 
-.book-card img {
-  width: 100px;
-  height: auto;
-  border-radius: 10px;
-  margin-right: 1rem;
-  object-fit: cover;
-}
+      filteredBooks.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.innerHTML = `
+          ${book.imageUrl ? `<img src="${book.imageUrl}" alt="책표지">` : ''}
+          <div class="info">
+            <h3>${book.title}</h3>
+            <p>👤 ${book.author}</p>
+            <p>🏢 ${book.publisher}</p>
+            ${book.buyLink ? `<p><a href="${book.buyLink}" target="_blank" rel="noopener noreferrer">📖 구매하기</a></p>` : ''}
+            <button class="delete-btn" data-id="${book.id}">삭제</button>
+          </div>
+        `;
+        bookList.appendChild(card);
+      });
 
-.book-card .info {
-  flex: 1;
-}
+      // 삭제 버튼 이벤트 연결
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute('data-id');
+          if(confirm('정말 이 책을 삭제하시겠습니까?')) {
+            await deleteBookFromFirebase(id);
+          }
+        };
+      });
+    }
 
-/* ===== 책 등록 폼 스타일 ===== */
-form#book-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-  margin-top: 1rem;
-}
+    // 카테고리 버튼 이벤트
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-cat');
+        // 데이터 다시 불러오기 -> 렌더링은 onValue 리스너가 처리
+        // 그래서 여기서는 따로 불러기 필요 없음.
+      });
+    });
 
-form#book-form input[type="text"],
-form#book-form select,
-form#book-form input[type="file"] {
-  width: 90%;
-  max-width: 500px;
-  padding: 0.6rem 1rem;
-  font-size: 1rem;
-  border-radius: 12px;
-  border: none;
-  background-color: #d8c3a5;  /* 연갈색 */
-  color: #4b3b2b;
-  box-sizing: border-box;
-  outline: none;
-  transition: background-color 0.3s ease;
-}
+    // 폼 제출 이벤트
+    bookForm.onsubmit = (e) => {
+      e.preventDefault();
 
-form#book-form input[type="text"]:focus,
-form#book-form select:focus,
-form#book-form input[type="file"]:focus {
-  background-color: #f8e7d2;
-}
+      const category = document.getElementById('category').value;
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const publisher = document.getElementById('publisher').value;
 
-form#book-form button {
-  margin-top: 1rem;
-  padding: 0.6rem 1.2rem;
-  background-color: #6c4f3d;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
+      let buyLink = document.getElementById('buyLink').value.trim();
+      if (buyLink && !buyLink.startsWith('http://') && !buyLink.startsWith('https://')) {
+        buyLink = 'http://' + buyLink;
+      }
 
-form#book-form button:hover {
-  background-color: #8a6d5a;
-}
+      const coverInput = document.getElementById('cover');
+      const book = { category, title, author, publisher, buyLink, imageUrl: '' };
+
+      if (coverInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          book.imageUrl = reader.result;
+          saveBookToFirebase(book);
+          bookForm.reset();
+          formSection.style.display = 'none';
+        };
+        reader.readAsDataURL(coverInput.files[0]);
+      } else {
+        saveBookToFirebase(book);
+        bookForm.reset();
+        formSection.style.display = 'none';
+      }
+    };
+
+    // 초기 데이터 로드 및 실시간 업데이트 리스너
+    loadBooksFromFirebase((books) => {
+      renderBooks(books, currentFilter);
+    });
+
+  </script>
+</body>
+</html>
