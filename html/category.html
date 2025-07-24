@@ -52,125 +52,148 @@
 
   <section id="book-list"></section>
 
-<script>
-  const toggleBtn = document.getElementById('toggle-form');
-  const formSection = document.getElementById('form-section');
-  const bookForm = document.getElementById('book-form');
-  const bookList = document.getElementById('book-list');
-  const categoryButtons = document.querySelectorAll('.cat-btn');
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-  let books = JSON.parse(localStorage.getItem('books')) || [];
-  let currentFilter = 'all';
-
-  // 토글 폼 보이기/숨기기
-  toggleBtn.onclick = () => {
-    formSection.style.display = formSection.style.display === 'none' ? 'block' : 'none';
-  };
-
-  // 저장 후 렌더링 & 로컬스토리지에 저장
-  function saveBooks() {
-    localStorage.setItem('books', JSON.stringify(books));
-  }
-
-  // 책 삭제
-  function deleteBook(index) {
-    if(confirm('정말 이 책을 삭제하시겠습니까?')) {
-      books.splice(index, 1);
-      saveBooks();
-      renderBooks(currentFilter);
-    }
-  }
-
-  // 책 렌더링
-  function renderBooks(filter) {
-    bookList.innerHTML = '';
-    // 필터링
-    const filteredBooks = filter === 'all' ? books : books.filter(b => b.category === filter);
-
-    if (filteredBooks.length === 0) {
-      bookList.innerHTML = '<p>등록된 책이 없습니다.</p>';
-      return;
-    }
-
-    filteredBooks.forEach((book, idx) => {
-      // 실제 인덱스 찾기 (전체 배열 기준)
-      const realIndex = books.indexOf(book);
-
-      const card = document.createElement('div');
-      card.className = 'book-card';
-      card.innerHTML = `
-        ${book.imageUrl ? `<img src="${book.imageUrl}" alt="책표지">` : ''}
-        <div class="info">
-          <h3>${book.title}</h3>
-          <p>👤 ${book.author}</p>
-          <p>🏢 ${book.publisher}</p>
-          ${book.buyLink ? `<p><a href="${book.buyLink}" target="_blank" rel="noopener noreferrer">📖 구매하기</a></p>` : ''}
-          <button class="delete-btn" data-index="${realIndex}">삭제</button>
-        </div>
-      `;
-      bookList.appendChild(card);
-    });
-
-    // 삭제 버튼 이벤트 연결
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        const idx = parseInt(btn.getAttribute('data-index'));
-        deleteBook(idx);
-      };
-    });
-  }
-
-  // 카테고리 버튼 이벤트
-  categoryButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      categoryButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.getAttribute('data-cat');
-      renderBooks(currentFilter);
-    });
-  });
-
-  // 폼 제출
-  bookForm.onsubmit = (e) => {
-    e.preventDefault();
-
-    const category = document.getElementById('category').value;
-    const title = document.getElementById('title').value;
-    const author = document.getElementById('author').value;
-    const publisher = document.getElementById('publisher').value;
-
-    // buyLink 자동 http/https 붙이기 처리
-    let buyLink = document.getElementById('buyLink').value.trim();
-    if (buyLink && !buyLink.startsWith('http://') && !buyLink.startsWith('https://')) {
-      buyLink = 'http://' + buyLink;
-    }
-
-    const coverInput = document.getElementById('cover');
-
-    const reader = new FileReader();
-    reader.onload = function () {
-      const imageUrl = reader.result;
-
-      books.push({ category, title, author, publisher, buyLink, imageUrl });
-      saveBooks();
-      renderBooks(currentFilter);
-      bookForm.reset();
-      formSection.style.display = 'none';
+    // Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0aaH73fZlF_90cXLXJW9qjeRAsiy8hio",
+      authDomain: "everybooks-25103.firebaseapp.com",
+      databaseURL: "https://everybooks-25103-default-rtdb.asia-southeast1.firebasedatabase.app/", // Realtime DB URL 반드시 넣어야 함
+      projectId: "everybooks-25103",
+      storageBucket: "everybooks-25103.appspot.com",
+      messagingSenderId: "546607329490",
+      appId: "1:546607329490:web:f2013f36118e9c0644bd0b"
     };
 
-    if (coverInput.files[0]) {
-      reader.readAsDataURL(coverInput.files[0]);
-    } else {
-      books.push({ category, title, author, publisher, buyLink, imageUrl: '' });
-      saveBooks();
-      renderBooks(currentFilter);
-      bookForm.reset();
-      formSection.style.display = 'none';
-    }
-  };
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-  // 초기 렌더링
-  renderBooks(currentFilter);
-</script>
+    const toggleBtn = document.getElementById('toggle-form');
+    const formSection = document.getElementById('form-section');
+    const bookForm = document.getElementById('book-form');
+    const bookList = document.getElementById('book-list');
+    const categoryButtons = document.querySelectorAll('.cat-btn');
+
+    let currentFilter = 'all';
+
+    // 폼 토글
+    toggleBtn.onclick = () => {
+      formSection.style.display = formSection.style.display === 'none' ? 'block' : 'none';
+    };
+
+    // Firebase에 책 저장
+    function saveBookToFirebase(book) {
+      const booksRef = ref(database, 'books');
+      const newBookRef = push(booksRef);
+      return set(newBookRef, book);
+    }
+
+    // Firebase에서 책 불러오기 (실시간 리스너 아님, 한번만)
+    function loadBooksFromFirebase(callback) {
+      const booksRef = ref(database, 'books');
+      onValue(booksRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        const booksArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        callback(booksArray);
+      });
+    }
+
+    // Firebase에서 책 삭제
+    function deleteBookFromFirebase(id) {
+      const bookRef = ref(database, 'books/' + id);
+      return remove(bookRef);
+    }
+
+    // 책 렌더링 함수 (books 배열과 필터 받음)
+    function renderBooks(books, filter) {
+      bookList.innerHTML = '';
+      const filteredBooks = filter === 'all' ? books : books.filter(b => b.category === filter);
+
+      if (filteredBooks.length === 0) {
+        bookList.innerHTML = '<p>등록된 책이 없습니다.</p>';
+        return;
+      }
+
+      filteredBooks.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.innerHTML = `
+          ${book.imageUrl ? `<img src="${book.imageUrl}" alt="책표지">` : ''}
+          <div class="info">
+            <h3>${book.title}</h3>
+            <p>👤 ${book.author}</p>
+            <p>🏢 ${book.publisher}</p>
+            ${book.buyLink ? `<p><a href="${book.buyLink}" target="_blank" rel="noopener noreferrer">📖 구매하기</a></p>` : ''}
+            <button class="delete-btn" data-id="${book.id}">삭제</button>
+          </div>
+        `;
+        bookList.appendChild(card);
+      });
+
+      // 삭제 버튼 이벤트 연결
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute('data-id');
+          if(confirm('정말 이 책을 삭제하시겠습니까?')) {
+            await deleteBookFromFirebase(id);
+          }
+        };
+      });
+    }
+
+    // 카테고리 버튼 이벤트
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-cat');
+        // 데이터 다시 불러오기 -> 렌더링은 onValue 리스너가 처리
+        // 그래서 여기서는 따로 불러기 필요 없음.
+      });
+    });
+
+    // 폼 제출 이벤트
+    bookForm.onsubmit = (e) => {
+      e.preventDefault();
+
+      const category = document.getElementById('category').value;
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const publisher = document.getElementById('publisher').value;
+
+      let buyLink = document.getElementById('buyLink').value.trim();
+      if (buyLink && !buyLink.startsWith('http://') && !buyLink.startsWith('https://')) {
+        buyLink = 'http://' + buyLink;
+      }
+
+      const coverInput = document.getElementById('cover');
+      const book = { category, title, author, publisher, buyLink, imageUrl: '' };
+
+      if (coverInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          book.imageUrl = reader.result;
+          saveBookToFirebase(book);
+          bookForm.reset();
+          formSection.style.display = 'none';
+        };
+        reader.readAsDataURL(coverInput.files[0]);
+      } else {
+        saveBookToFirebase(book);
+        bookForm.reset();
+        formSection.style.display = 'none';
+      }
+    };
+
+    // 초기 데이터 로드 및 실시간 업데이트 리스너
+    loadBooksFromFirebase((books) => {
+      renderBooks(books, currentFilter);
+    });
+
+  </script>
 </body>
 </html>
